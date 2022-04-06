@@ -33,7 +33,7 @@ flags = os.O_RDONLY
 setup_file_path = './setup.txt'
 client_log_file = ''
 client_log_folder = ''
-program_count_file = ''
+program_count_file = './lastlength.txt'
 telegram_bot_token = ''
 telegram_chatID = ''
 kill_thread = False
@@ -56,19 +56,31 @@ def startup():
     global program_count_file
     global telegram_bot_token
     global telegram_chatID
-    try:
-        with open(setup_file_path,'r', encoding='utf-8') as f:
-            lines = f.readlines()
-    except FileNotFoundError:
-        mylogs.error('COULD NOT LOCATE SETUP FILE')  
-        sys.exit(0)
+    if os.path.exists(setup_file_path):
+        try:
+            with open(setup_file_path,'r', encoding='utf-8') as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            mylogs.error('COULD NOT LOCATE SETUP FILE')  
+            sys.exit(0)
 
-    client_log_file = lines[0][lines[0].find('=')+1:].strip()
-    client_log_folder = lines[1][lines[1].find('=')+1:].strip()
-    program_count_file = lines[2][lines[2].find('=')+1:].strip()
-    telegram_bot_token = lines[3][lines[3].find('=')+1:].strip()
-    telegram_chatID = lines[4][lines[4].find('=')+1:].strip()
+        client_log_file = lines[0][lines[0].find('=')+1:].strip()
+        client_log_folder = client_log_file[:-11]
+        telegram_bot_token = lines[1][lines[1].find('=')+1:].strip()
+        telegram_chatID = lines[2][lines[2].find('=')+1:].strip()
+    else:
+        mylogs.warning('SETUP FILE DOES NOT EXIST! CREATING SETUP FILE')
+        client_log_file = input('ENTER CLIENT LOG FILE ABSOLUTE PATH: ')
+        client_log_folder = client_log_file[:-11]
+        telegram_bot_token = input('ENTER TELEGRAM BOT TOKEN: ')
+        telegram_chatID = input('ENTER TELEGRAM CHAT ID: ')
 
+        setup_text = 'client_log_file = {}\ntelegram_bot_token = {}\ntelegram_chatID = {}'.format(client_log_file, telegram_bot_token, telegram_chatID)
+        mylogs.info('CREATING SETUP FILE')
+        with open(setup_file_path,'w', encoding='utf-8') as f:
+                f.write(setup_text)
+        
+        mylogs.info('SETUP FILE CREATED SUCCESSFULLY')
     mylogs.info('OPENING PROGRAM COUNTER AND CLIENT LOG')
 
     try:
@@ -131,6 +143,9 @@ def  whisper(client_log_file, program_count_file, telegram_bot_token, telegram_c
                 chat = status['result']['chat']
                 mylogs.info('MESSAGE SENT THROUGH {} TO {} {}'.format(sender['first_name'],chat['first_name'], chat['last_name']))
                 mylogs.info('MESSAGE: {}'.format(whispers))
+            else:
+                mylogs.warning('**********************STATUS:NO OK**********************')
+                mylogs.warning('MESSAGE NOT SENT!! PLEASE CHECK BOT PARAMETERS OR CHAT ID')
 
     with open(program_count_file,'w',encoding='utf-8') as f:
         f.write(str(last_length))

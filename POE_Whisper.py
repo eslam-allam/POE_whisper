@@ -4,6 +4,7 @@ import requests
 import os
 import threading
 import time
+import sys
 
 logging.getLogger("watchfiles").setLevel(logging.CRITICAL)
 
@@ -26,7 +27,7 @@ def refresh():
     global kill_thread
     while True:
         if kill_thread == True:
-            raise Exception('Terminate refresh thread')
+            sys.exit()
         file= os.open(client_log_file, flags, mode)
         os.close(file)
         time.sleep(1)
@@ -134,9 +135,16 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         logging.info('PROGRAM TERMINATED')
         kill_thread = True
+        th.join()
         
         
     except Exception as e:
         logging.error('PROGRAM TERMINATED WITHOUT INTERRUPT' + str(e))
-        
+        kill_thread = True
+        th.join()
+
+    finally:
+        logging.info('PROGRAM TERMINATED')
+        kill_thread = True
+        th.join()
         

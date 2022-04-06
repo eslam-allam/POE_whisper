@@ -4,3 +4,5 @@
 /POE_WHISPER.build/
 /POE_WHISPER.dist/
 
+*.txt
+*.log

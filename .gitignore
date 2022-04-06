@@ -1,3 +1,6 @@
 
 *.7z
 /POE_WHISPER_APP/
+/POE_WHISPER.build/
+/POE_WHISPER.dist/
+

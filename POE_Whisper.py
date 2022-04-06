@@ -9,10 +9,24 @@ import sys
 
 logging.getLogger("watchfiles").setLevel(logging.CRITICAL)
 
-logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
-    level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S')
+mylogs = logging.getLogger(__name__)
+mylogs.setLevel(logging.DEBUG)
+
+file = logging.FileHandler("program_logs.log")
+file.setLevel(logging.INFO)
+fileformat = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s',datefmt='%Y-%m-%d %H:%M:%S')
+file.setFormatter(fileformat)
+
+mylogs.addHandler(file)
+
+stream = logging.StreamHandler()
+stream.setLevel(logging.INFO)
+streamformat = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s',datefmt='%Y-%m-%d %H:%M:%S')
+stream.setFormatter(streamformat)
+
+
+mylogs.addHandler(stream)
+
 
 mode = 0o777
 flags = os.O_RDONLY
@@ -28,7 +42,7 @@ def refresh():
     global kill_thread
     while True:
         if kill_thread == True:
-            logging.info('KILLING THREAD')
+            mylogs.info('KILLING THREAD')
             sys.exit()
         file= os.open(client_log_file, flags, mode)
         os.close(file)
@@ -46,7 +60,7 @@ def startup():
         with open(setup_file_path,'r', encoding='utf-8') as f:
             lines = f.readlines()
     except FileNotFoundError:
-        logging.error('COULD NOT LOCATE SETUP FILE')  
+        mylogs.error('COULD NOT LOCATE SETUP FILE')  
         sys.exit(0)
 
     client_log_file = lines[0][lines[0].find('=')+1:].strip()
@@ -55,13 +69,13 @@ def startup():
     telegram_bot_token = lines[3][lines[3].find('=')+1:].strip()
     telegram_chatID = lines[4][lines[4].find('=')+1:].strip()
 
-    logging.info('OPENING PROGRAM COUNTER AND CLIENT LOG')
+    mylogs.info('OPENING PROGRAM COUNTER AND CLIENT LOG')
 
     try:
         with open(client_log_file, 'r', encoding='utf-8') as f:
             count = f.readlines()
     except FileNotFoundError:
-        logging.error('COULD NOT LOCATE LOG FILE')  
+        mylogs.error('COULD NOT LOCATE LOG FILE')  
         sys.exit(0)
 
     length = len(count)
@@ -112,17 +126,17 @@ def  whisper(client_log_file, program_count_file, telegram_bot_token, telegram_c
             response = requests.get('https://api.telegram.org/bot{}/sendMessage'.format(telegram_bot_token),params={'text':whispers,'chat_id': '{}'.format(telegram_chatID)})
             status = response.json()
             if status['ok']:
-                logging.info('**********************STATUS:OK**********************')
+                mylogs.info('**********************STATUS:OK**********************')
                 sender = status['result']['from']
                 chat = status['result']['chat']
-                logging.info('MESSAGE SENT THROUGH {} TO {} {}'.format(sender['first_name'],chat['first_name'], chat['last_name']))
-                logging.info('MESSAGE: {}'.format(whispers))
+                mylogs.info('MESSAGE SENT THROUGH {} TO {} {}'.format(sender['first_name'],chat['first_name'], chat['last_name']))
+                mylogs.info('MESSAGE: {}'.format(whispers))
 
     with open(program_count_file,'w',encoding='utf-8') as f:
         f.write(str(last_length))
 
 def main():
-    logging.info('PROGRAM RUNNING')
+    mylogs.info('PROGRAM RUNNING')
     run_process(client_log_folder, target=whisper, watch_filter=textFilter(), args=(client_log_file, program_count_file, telegram_bot_token, telegram_chatID))
 
 
@@ -130,12 +144,12 @@ if __name__ == '__main__':
     
     try:
         th = threading.Thread(target=refresh, daemon=False)
-        logging.info('LOADING SETUP PREFERENCES')
+        mylogs.info('LOADING SETUP PREFERENCES')
         startup()
-        logging.info('PREFERENCES LOADED SUCCESSFULLY')
-        logging.info('STARTING REFRESH THREAD')
+        mylogs.info('PREFERENCES LOADED SUCCESSFULLY')
+        mylogs.info('STARTING REFRESH THREAD')
         th.start()
-        logging.info('THREAD STARTED')
+        mylogs.info('THREAD STARTED')
 
         main()
         
@@ -145,7 +159,7 @@ if __name__ == '__main__':
         if th: 
             if th.is_alive():
                 th.join()
-        logging.info('PROGRAM TERMINATED')
+        mylogs.info('PROGRAM TERMINATED')
         
         
     except Exception as e:
@@ -154,12 +168,12 @@ if __name__ == '__main__':
             if th.is_alive():
                 th.join()
         
-        logging.error('PROGRAM TERMINATED WITHOUT INTERRUPT ' + str(e))
+        mylogs.error('PROGRAM TERMINATED WITHOUT INTERRUPT ' + str(e))
 
     finally:
         kill_thread = True
         if th: 
             if th.is_alive():
                 th.join()
-        logging.info('PROGRAM TERMINATED')
+        mylogs.info('PROGRAM TERMINATED')
         

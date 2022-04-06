@@ -1,4 +1,5 @@
 import logging
+from pickle import FALSE
 from watchfiles import run_process
 import requests
 import os
@@ -27,6 +28,7 @@ def refresh():
     global kill_thread
     while True:
         if kill_thread == True:
+            logging.info('KILLING THREAD')
             sys.exit()
         file= os.open(client_log_file, flags, mode)
         os.close(file)
@@ -124,7 +126,7 @@ if __name__ == '__main__':
         logging.info('LOADING SETUP PREFERENCES')
         startup()
         logging.info('PREFERENCES LOADED SUCCESSFULLY')
-        th = threading.Thread(target=refresh, daemon=True)
+        th = threading.Thread(target=refresh, daemon=False)
         logging.info('STARTING REFRESH THREAD')
         th.start()
         logging.info('THREAD STARTED')
@@ -133,18 +135,18 @@ if __name__ == '__main__':
         
         
     except KeyboardInterrupt:
-        logging.info('PROGRAM TERMINATED')
         kill_thread = True
         th.join()
+        logging.info('PROGRAM TERMINATED')
         
         
     except Exception as e:
-        logging.error('PROGRAM TERMINATED WITHOUT INTERRUPT' + str(e))
         kill_thread = True
         th.join()
+        logging.error('PROGRAM TERMINATED WITHOUT INTERRUPT ' + str(e))
 
     finally:
-        logging.info('PROGRAM TERMINATED')
         kill_thread = True
         th.join()
+        logging.info('PROGRAM TERMINATED')
         

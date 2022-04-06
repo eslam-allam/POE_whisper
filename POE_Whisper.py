@@ -42,10 +42,13 @@ def startup():
     global program_count_file
     global telegram_bot_token
     global telegram_chatID
+    try:
+        with open(setup_file_path,'r', encoding='utf-8') as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        logging.error('COULD NOT LOCATE SETUP FILE')  
+        sys.exit(0)
 
-    with open(setup_file_path,'r', encoding='utf-8') as f:
-        lines = f.readlines()
-        
     client_log_file = lines[0][lines[0].find('=')+1:].strip()
     client_log_folder = lines[1][lines[1].find('=')+1:].strip()
     program_count_file = lines[2][lines[2].find('=')+1:].strip()
@@ -53,16 +56,21 @@ def startup():
     telegram_chatID = lines[4][lines[4].find('=')+1:].strip()
 
     logging.info('OPENING PROGRAM COUNTER AND CLIENT LOG')
-    with open(client_log_file, 'r', encoding='utf-8') as f:
-        count = f.readlines()
+
+    try:
+        with open(client_log_file, 'r', encoding='utf-8') as f:
+            count = f.readlines()
+    except FileNotFoundError:
+        logging.error('COULD NOT LOCATE LOG FILE')  
+        sys.exit(0)
 
     length = len(count)
 
 
-    with open(program_count_file,'w',encoding='utf-8') as f:
+    with open(program_count_file,'w+',encoding='utf-8') as f:
             f.write(str(length))
 
-from watchfiles import Change, DefaultFilter, watch
+from watchfiles import Change, DefaultFilter
 
 
 class textFilter(DefaultFilter):
@@ -84,9 +92,7 @@ def  whisper(client_log_file, program_count_file, telegram_bot_token, telegram_c
         if lines:
             
             if last_length != 0:
-                if last_length == len(lines):
-                    equal = True
-                else: 
+                if last_length != len(lines):
                     diffirence = len(lines) - last_length
                     content = lines[-diffirence:]
                     
@@ -123,10 +129,10 @@ def main():
 if __name__ == '__main__':
     
     try:
+        th = threading.Thread(target=refresh, daemon=False)
         logging.info('LOADING SETUP PREFERENCES')
         startup()
         logging.info('PREFERENCES LOADED SUCCESSFULLY')
-        th = threading.Thread(target=refresh, daemon=False)
         logging.info('STARTING REFRESH THREAD')
         th.start()
         logging.info('THREAD STARTED')
@@ -136,17 +142,24 @@ if __name__ == '__main__':
         
     except KeyboardInterrupt:
         kill_thread = True
-        th.join()
+        if th: 
+            if th.is_alive():
+                th.join()
         logging.info('PROGRAM TERMINATED')
         
         
     except Exception as e:
         kill_thread = True
-        th.join()
+        if th: 
+            if th.is_alive():
+                th.join()
+        
         logging.error('PROGRAM TERMINATED WITHOUT INTERRUPT ' + str(e))
 
     finally:
         kill_thread = True
-        th.join()
+        if th: 
+            if th.is_alive():
+                th.join()
         logging.info('PROGRAM TERMINATED')
         

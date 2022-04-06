@@ -40,13 +40,22 @@ kill_thread = False
 
 def refresh():
     global kill_thread
+    attempts = 0
     while True:
         if kill_thread == True:
             mylogs.info('KILLING THREAD')
             sys.exit()
-        file= os.open(client_log_file, flags, mode)
-        os.close(file)
-        time.sleep(1)
+        
+        try:
+            file= os.open(client_log_file, flags, mode)
+            os.close(file)
+            time.sleep(1)
+        except Exception as e:
+            mylogs.warning('ACCESS DENIED! REATTEMPTING')
+            attempts += 1
+            if attempts == 3:
+                mylogs.error('TOO MANY ATTEMPTS! TERMINATING!!')
+                sys.exit()
         
 
 def startup():

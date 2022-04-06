@@ -9,7 +9,7 @@
  3-create a bot using bot father and save the provided bot token  
  4- search for @RawDataBot to obtain your chat ID  
  5- locate 'Client.txt' in your POE logs folder and save the absolute path (looks something like this for steam users: 'C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt')  
- 6- download and install the app and run it, the app will prompt you to enter the information you previously collected.  
+ 6- download and install the app and run it, the app will prompt you to enter the information you previously collected. You can find the app in the [releases section](https://link-url-here.org)
  ##### The program is now up and running. if you get a 'NO OK' error upon recieving a whisper, make sure that you started a your bot (go to your bot chat in telegram) and click start. if that doesn't work then double check the bot token and chatID.  
  let me know if any inqueries, requests, or problems you might have in the issues section.  
 

@@ -14,6 +14,7 @@
  let me know if any inqueries, requests, or problems you might have in the issues section.  
 
  This is by no means an effiecient\finished product. Other C#/c++ implementations should perform alot better.  
+ ##### You can access program_logs.logs file in the program folder to view all program logs(INFO, WARNINGS, ERRORS) for debugging
 
  ## This program is NOT endorsed by GGG or any of it's affiliates, use at your own risk after reading the POE terms and conditions.
 

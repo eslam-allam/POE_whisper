@@ -20,7 +20,6 @@ client_log_folder = ''
 program_count_file = ''
 telegram_bot_token = ''
 telegram_chatID = ''
-startup_checked = True
 kill_thread = False
 
 def refresh():
@@ -50,6 +49,7 @@ def startup():
     telegram_bot_token = lines[3][lines[3].find('=')+1:].strip()
     telegram_chatID = lines[4][lines[4].find('=')+1:].strip()
 
+    logging.info('OPENING PROGRAM COUNTER AND CLIENT LOG')
     with open(client_log_file, 'r', encoding='utf-8') as f:
         count = f.readlines()
 
@@ -70,18 +70,12 @@ class textFilter(DefaultFilter):
 
 
 
-def  whisper(client_log_file, program_count_file, telegram_bot_token, telegram_chatID, startup_checked):
-    if startup_checked:
-        logging.info('OPENING PROGRAM COUNTER AND CLIENT LOG')
-        
+def  whisper(client_log_file, program_count_file, telegram_bot_token, telegram_chatID):
     with open(program_count_file,'r',encoding='utf-8') as f:
         last_length = int(f.readline())
     content = ''
     whispers = ''
     with open(client_log_file,'r',encoding='utf-8') as f:
-        if startup_checked: 
-            logging.info('PROGRAM RUNNING')
-
         lines = f.readlines()
         
         if lines:
@@ -113,12 +107,14 @@ def  whisper(client_log_file, program_count_file, telegram_bot_token, telegram_c
                 sender = status['result']['from']
                 chat = status['result']['chat']
                 logging.info('MESSAGE SENT THROUGH {} TO {} {}'.format(sender['first_name'],chat['first_name'], chat['last_name']))
+                logging.info('MESSAGE: {}'.format(whispers))
 
     with open(program_count_file,'w',encoding='utf-8') as f:
         f.write(str(last_length))
 
 def main():
-    run_process(client_log_folder, target=whisper, watch_filter=textFilter(), args=(client_log_file, program_count_file, telegram_bot_token, telegram_chatID, startup_checked))
+    logging.info('PROGRAM RUNNING')
+    run_process(client_log_folder, target=whisper, watch_filter=textFilter(), args=(client_log_file, program_count_file, telegram_bot_token, telegram_chatID))
 
 
 if __name__ == '__main__':
@@ -136,10 +132,11 @@ if __name__ == '__main__':
         
         
     except KeyboardInterrupt:
-        print('Program Terminated')
+        logging.info('PROGRAM TERMINATED')
         kill_thread = True
         
         
     except Exception as e:
-        print('An {e.__class__} has occured!!')
+        logging.error('PROGRAM TERMINATED WITHOUT INTERRUPT' + str(e))
+        
         
